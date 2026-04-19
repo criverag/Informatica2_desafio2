@@ -1,0 +1,173 @@
+---
+title: "Informática2 - Desafío2"
+subtitle: "UdeAWorldCup — Avance 1: Análisis y Diseño Inicial"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    toc: true
+    number_sections: false
+  html_document:
+    toc: true
+    toc_float: true
+    theme: cosmo
+    number_sections: false
+fontsize: 11pt
+geometry: margin=1in
+---
+
+\newpage
+
+## Objetivo
+
+Hacer un análisis sobre el problema antes de iniciar a programar código C++. 
+
+Es necesario entender qué entidades existen en el mundo del fútbol que hay que modelar, cómo se relacionan entre sí, y cuál es la mejor manera de organizarlas en clases de C++. 
+
+En el análisis también se identifican las dudas y dificultades actuales y que se anticipan para el desarrollo.
+
+## Comprensión del problema
+
+El sistema **UdeAWorldCup** debe simular el Mundial de Fútbol FIFA 2026. Esto implica:
+
+- Gestionar **48 equipos**, cada uno con **26 jugadores**.
+- Realizar un **sorteo de grupos** respetando restricciones de confederación.
+- **Simular 104 partidos** en múltiples etapas, usando una ecuación estadística para calcular los goles.
+- Actualizar **estadísticas históricas** de equipos y jugadores luego de cada partido.
+- Leer datos iniciales desde un archivo `.csv` y guardar resultados.
+- Medir el **consumo de memoria e iteraciones** al finalizar cada funcionalidad.
+
+**No se puede usar la STL** (nada de `vector`, `list`, `map`, etc.), lo que significa que todas las estructuras de datos hay que construirlas manualmente usando memoria dinámica con `new` y `delete`.
+
+## Identificación de entidades y clases propuestas
+
+Después de analizar el problema, identifiqué las siguientes entidades principales que deben representarse como clases:
+
+### `Jugador`
+Representa a cada uno de los 26 jugadores de un equipo.
+
+**Atributos que necesita:**
+- `nombre` y `apellido` (cadenas de texto — `char*` )
+- `numeroCamiseta` (entero)
+- Estadísticas históricas: goles, partidos jugados, minutos jugados, asistencias, tarjetas amarillas, tarjetas rojas, faltas
+
+**Decisión de diseño:** Los nombres se almacenarán como `char*` 
+
+### `EstadisticasPartidoJugador`
+Cuando un jugador participa en un partido específico, se registran sus estadísticas de ese partido en particular (no las históricas). Tiene sentido separar esto en su propia estructura para no mezclar datos históricos con datos de un partido puntual.
+
+**Atributos:** goles, tarjetas amarillas, tarjetas rojas, faltas, minutos jugados.
+
+### `Equipo`
+Representa a una selección nacional participante.
+
+**Atributos que necesita:**
+- País, confederación, director técnico
+- Ranking FIFA
+- Estadísticas históricas del equipo: goles a favor, goles en contra, partidos ganados, empatados, perdidos, tarjetas amarillas, rojas, faltas
+- Plantilla de 26 jugadores → **arreglo dinámico de punteros a `Jugador`**
+
+**Decisión de diseño:** La plantilla de jugadores se manejará como un arreglo dinámico `Jugador**` de tamaño fijo (26) que permite acceder a los jugadores directamente por índice.
+
+### `EstadisticasPartidoEquipo`
+Registra los datos de un equipo en un partido particular: goles a favor, goles en contra, porcentaje de posesión, y cuáles 11 jugadores participaron con sus estadísticas individuales.
+
+### `Partido`
+Representa un partido del torneo.
+
+**Atributos que necesita:**
+- Fecha, hora, sede
+- Códigos de los 3 árbitros (`char*`)
+- Referencias a los dos equipos (`Equipo*`)
+- Estadísticas del partido por equipo (`EstadisticasPartidoEquipo`)
+- Si se resolvió en prórroga (booleano)
+
+### `Grupo`
+Agrupa a 4 equipos durante la fase de grupos.
+
+**Atributos:** identificador de letra (A–L), arreglo de 4 punteros a `Equipo`, puntos acumulados por cada equipo, diferencia de goles.
+
+### `Fixture`
+Información sobre las fechas de los encuentros. Organiza y controla el flujo completo del torneo. Conoce en qué etapa se está, guarda los partidos de cada ronda y maneja las transiciones entre etapas.
+ 
+**Responsabilidades:**
+- Armar el calendario de la fase de grupos respetando las restricciones de fechas.
+- Gestionar R16, R8, QF, SF, 3er puesto y Final.
+- Determinar clasificados de cada etapa.
+
+### `Torneo`
+Clase principal que coordina todo el sistema. Actúa como punto de entrada y contiene a todos los equipos, grupos.
+
+**Tareas:**
+- Cargar datos del CSV.
+- Inicializar jugadores aleatoriamente.
+- Ejecutar el sorteo de grupos.
+- Invocar la simulación de cada etapa.
+- Generar el informe de estadísticas finales.
+- Medir y reportar consumo de recursos.
+
+### `MedidorRecursos`
+Clase auxiliar que lleva la cuenta de iteraciones y calcula el consumo de memoria en cualquier momento de la ejecución.
+
+## Relaciones entre clases
+
+| Relación | Tipo | Descripción |
+|---|---|---|
+| `Torneo` → `Equipo` | Composición | El torneo contiene y gestiona todos los equipos |
+| `Equipo` → `Jugador` | Composición | Cada equipo "posee" su plantilla de jugadores |
+| `Torneo` → `Grupo` | Composición | El torneo contiene los 12 grupos |
+| `Grupo` → `Equipo` | Asociación | El grupo referencia equipos, no los posee |
+| `Torneo` → `Fixture` | Composición | El torneo tiene un fixture |
+| `Fixture` → `Partido` | Composición | El fixture gestiona todos los partidos |
+| `Partido` → `Equipo` | Asociación | El partido referencia dos equipos existentes |
+| `Partido` → `EstadisticasPartidoEquipo` | Composición | El partido contiene las estadísticas de ambos equipos |
+| `EstadisticasPartidoEquipo` → `EstadisticasPartidoJugador` | Composición | Contiene las estadísticas de los 11 jugadores convocados |
+
+---
+
+## Diagrama de clases
+
+Se implementó la herramienta [https://mermaid.js.org/]() para crear al diagrama de clases. Se adjunta el archivo '.mmd' para reproducirlo.
+
+![](diagrama_clases4.png)
+
+## Manejo de memoria
+
+Se plantea una propuesta para la gestión de memoria.
+
+### Memoria para cadenas de texto (`char*`)
+Cada nombre, apellido, confederación, etc., se reservará con `new char[longitud + 1]` y se liberará con `delete[]` en el destructor de la clase correspondiente.
+
+### Arreglos dinámicos de objetos
+- La plantilla de 26 jugadores en `Equipo`: `Jugador** jugadores = new Jugador*[26]`
+- Los 48 equipos del torneo: `Equipo** equipos = new Equipo*[48]`
+- Los 12 grupos: `Grupo** grupos = new Grupo*[12]`
+
+### Destructor obligatorio
+Cada clase que use `new` tendrá un destructor que llame `delete[]` sobre todos los arreglos para evitar posibles fugas de memoria. **Esto es algo que aún no tengo muy claro, si esta es la mejor forma de implementar el destructor.**
+
+## Dificultades anticipadas
+
+### La restricción de confederaciones en el sorteo
+El enunciado dice que no pueden quedar dos equipos de la misma confederación en el mismo grupo, **excepto UEFA que puede tener hasta 2**. Implementar este sorteo de forma aleatoria pero respetando estas restricciones puede ser complicado. **Aún no tengo claro cómo implementar esto.**
+
+### El calendario de la fase de grupos
+Cada día solo puede haber máximo 4 partidos, y ningún equipo puede jugar dos veces en menos de 3 días. Con 72 partidos de grupo (12 grupos × 6 partidos), organizar fechas respetando ambas restricciones requiere un poco más de análisis de mi parte. **Todavía no tengo clara la lógica exacta.**
+
+### La configuración del R16 (dieciseisavos)
+La transición de grupos a R16 es específica: los primeros de grupo vs. los terceros clasificados, luego los primeros restantes vs. los cuatro peores segundos, etc. Además, no pueden enfrentarse equipos del mismo grupo. Esta lógica de emparejamiento no está muy clara en este momento.
+
+### Lectura del CSV sin librerías externas
+Hay que leer el CSV manualmente, carácter por carácter.
+
+> ¿Implementar una función `leerCSV()` que construya los objetos `Equipo` línea por línea?
+
+### Medición de memoria
+Calcular el consumo real de memoria requiere saber el tamaño exacto de cada objeto en bytes. Se usará `sizeof()`. Aún no tengo claro si esto reflejará el consumo total del programa.
+
+## Cosas que aún no están decididas
+
+- **Formato del archivo de jugadores:** El enunciado pide que nosotros definamos el formato. Se está evaluando si usar un archivo de texto plano separado por comas o un formato personalizado más legible.
+
+- **Cómo representar las fechas:** Es necesario tener presente la fecha, pero aún no sé qué formato debo usar para representarla.
+
+- **Sobrecarga de operadores:** El enunciado exige sobrecargar al menos 2 operadores. Pero no tengo claro cómo implementarlos todavía.

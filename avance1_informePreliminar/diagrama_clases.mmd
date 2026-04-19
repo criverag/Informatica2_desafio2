@@ -1,0 +1,214 @@
+classDiagram
+
+    %% ─── CLASES DE ESTADÍSTICAS (estructuras de datos auxiliares) ───
+
+    class EstadisticasJugador {
+        +int goles
+        +int partidosJugados
+        +int minutosJugados
+        +int asistencias
+        +int tarjetasAmarillas
+        +int tarjetasRojas
+        +int faltas
+        +reiniciar() void
+    }
+
+    class EstadisticasPartidoJugador {
+        +int numeroCamiseta
+        +int goles
+        +int tarjetasAmarillas
+        +int tarjetasRojas
+        +int faltas
+        +int minutosJugados
+    }
+
+    class EstadisticasEquipo {
+        +int golesAFavor
+        +int golesEnContra
+        +int partidosGanados
+        +int partidosEmpatados
+        +int partidosPerdidos
+        +int tarjetasAmarillas
+        +int tarjetasRojas
+        +int faltas
+        +actualizarConPartido(golesF, golesC, resultado) void
+    }
+
+    class EstadisticasPartidoEquipo {
+        +int golesAFavor
+        +int golesEnContra
+        +double posesionBalon
+        +EstadisticasPartidoJugador* jugadoresConvocados
+        +int numJugadores
+        +EstadisticasPartidoEquipo()
+        +~EstadisticasPartidoEquipo()
+    }
+
+    %% ─── JUGADOR ───
+
+    class Jugador {
+        -char* nombre
+        -char* apellido
+        -int numeroCamiseta
+        -EstadisticasJugador statsHistoricas
+        +Jugador(nombre, apellido, camiseta)
+        +Jugador(const Jugador&)
+        +~Jugador()
+        +getNombre() char*
+        +getApellido() char*
+        +getCamiseta() int
+        +getStats() EstadisticasJugador&
+        +actualizarStats(EstadisticasPartidoJugador&) void
+        +operator<(const Jugador&) bool
+    }
+
+    %% ─── EQUIPO ───
+
+    class Equipo {
+        -char* pais
+        -char* confederacion
+        -char* directorTecnico
+        -int rankingFIFA
+        -EstadisticasEquipo statsHistoricas
+        -Jugador** jugadores
+        -int numJugadores
+        +Equipo(pais, confederacion, directorTecnico, ranking)
+        +Equipo(const Equipo&)
+        +~Equipo()
+        +getPais() char*
+        +getConfederacion() char*
+        +getRanking() int
+        +getJugador(indice) Jugador*
+        +getStats() EstadisticasEquipo&
+        +inicializarJugadores() void
+        +seleccionarOnce(indices*) void
+        +actualizarStats(EstadisticasPartidoEquipo&) void
+        +calcularPromedioGolesAFavor() double
+        +calcularPromedioGolesEnContra() double
+        +operator<(const Equipo&) bool
+        +operator<<(ostream&, const Equipo&) ostream&
+    }
+
+    %% ─── PARTIDO ───
+
+    class Partido {
+        -Equipo* equipo1
+        -Equipo* equipo2
+        -char* sede
+        -char* codArbitro1
+        -char* codArbitro2
+        -char* codArbitro3
+        -int dia
+        -int mes
+        -int anio
+        -int hora
+        -bool resueltoEnProrroga
+        -EstadisticasPartidoEquipo statsEquipo1
+        -EstadisticasPartidoEquipo statsEquipo2
+        +Partido(e1, e2, sede, dia, mes, anio)
+        +~Partido()
+        +simular() void
+        +getGanador() Equipo*
+        +fueProrroga() bool
+        +imprimirResultado() void
+        +calcularGolesEsperados(equipoA, equipoB) double
+        +operator<<(ostream&, const Partido&) ostream&
+    }
+
+    %% ─── GRUPO ───
+
+    class Grupo {
+        -char letra
+        -Equipo** equipos
+        -int puntos[]
+        -int golesAFavor[]
+        -int golesEnContra[]
+        -Partido** partidos
+        +Grupo(letra)
+        +~Grupo()
+        +agregarEquipo(Equipo*) void
+        +agregarPuntos(Equipo*, int) void
+        +ordenarPorPuntos() void
+        +getPrimero() Equipo*
+        +getSegundo() Equipo*
+        +getTercero() Equipo*
+        +imprimirTabla() void
+    }
+
+    %% ─── FIXTURE ───
+
+    class Fixture {
+        -Partido** partidosR16
+        -Partido** partidosR8
+        -Partido** partidosQF
+        -Partido** partidosSF
+        -Partido* partidoTercerPuesto
+        -Partido* final
+        -int numPartidosR16
+        -int numPartidosR8
+        +Fixture()
+        +~Fixture()
+        +configurarR16(grupos*, equiposTerceros*) void
+        +simularEtapa(partidos*, numPartidos, nombreEtapa) void
+        +simularR16() void
+        +simularR8() void
+        +simularQF() void
+        +simularSF() void
+        +simularFinal() void
+        +getCampeon() Equipo*
+    }
+
+    %% ─── TORNEO ───
+
+    class Torneo {
+        -Equipo** equipos
+        -int numEquipos
+        -Grupo** grupos
+        -int numGrupos
+        -Fixture* fixture
+        -MedidorRecursos* medidor
+        +Torneo()
+        +~Torneo()
+        +cargarDatosCSV(nombreArchivo) void
+        +realizarSorteoGrupos() void
+        +simularFaseDeGrupos() void
+        +construirTablaClasificacion() void
+        +simularEtapasFinal() void
+        +generarEstadisticasFinales() void
+        +mostrarMenu() void
+    }
+
+    %% ─── MEDIDOR DE RECURSOS ───
+
+    class MedidorRecursos {
+        -long iteraciones
+        -long bytesEnUso
+        +MedidorRecursos()
+        +reiniciar() void
+        +contarIteracion() void
+        +registrarMemoria(bytes) void
+        +calcularMemoriaSistema(torneo*) long
+        +mostrarMetricas() void
+    }
+
+    %% ─── RELACIONES ───
+
+    Torneo "1" *-- "48" Equipo : contiene
+    Torneo "1" *-- "12" Grupo : organiza en
+    Torneo "1" *-- "1" Fixture : gestiona
+    Torneo "1" *-- "1" MedidorRecursos : usa
+
+    Equipo "1" *-- "26" Jugador : tiene plantilla de
+    Equipo "1" *-- "1" EstadisticasEquipo : históricas
+
+    Jugador "1" *-- "1" EstadisticasJugador : históricas
+
+    Grupo "1" o-- "4" Equipo : referencia
+    Grupo "1" *-- "6" Partido : fase de grupos
+
+    Fixture "1" *-- "32~64" Partido : etapas eliminatorias
+
+    Partido "1" o-- "2" Equipo : enfrentados
+    Partido "1" *-- "2" EstadisticasPartidoEquipo : estadísticas del partido
+
+    EstadisticasPartidoEquipo "1" *-- "11" EstadisticasPartidoJugador : convocados
