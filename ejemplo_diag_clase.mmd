@@ -1,0 +1,17 @@
+classDiagram
+    Animal <|-- Perro
+    Animal <|-- Gato
+
+    class Animal {
+        +String nombre
+        +int edad
+        +comer()
+    }
+
+    class Perro {
+        +ladrar()
+    }
+
+    class Gato {
+        +maullar()
+    }
