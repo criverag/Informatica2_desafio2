@@ -1,3 +1,7 @@
 # Desafío 2 Informática 2
 
-Repositorio para el desarrollo del desafío 2. Aplicación de la Programación Orientada a Objetos.
+## **Avance 1**: 
+Documento con propuesta de solución al desafío
+
+## **Avance 2**: 
+Defieniendo estructura de carpetas del proyecto. Agregando archivo 'main.cpp'  incompleto (contiene el menú de interacción con el usuario). 
