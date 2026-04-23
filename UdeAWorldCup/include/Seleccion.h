@@ -2,83 +2,97 @@
 #define SELECCION_H
 
 #include <iostream>
-#include <fstream>
+#include <string>
+#include "Jugador.h"
 
 // ============================================================
 // Clase Seleccion
-// Representa a un equipo clasificado al Mundial de Fútbol 2026.
-// Almacena los datos históricos leídos desde el archivo CSV.
+// Representa una selección nacional clasificada al Mundial 2026.
+// Usa memoria dinámica para gestionar el arreglo de jugadores
+// (en el heap con new/delete[]).
 // ============================================================
 class Seleccion {
 private:
-    // --- Datos de identidad ---
-    char* pais;            // Nombre del país (memoria dinámica)
-    char* directorTecnico; // Nombre del DT
-    char* federacion;      // Federación nacional
-    char* confederacion;   // Confederación continental (UEFA, CONMEBOL, etc.)
+    // Datos generales del equipo
+    int    rankingFIFA;
+    std::string pais;
+    std::string directorTecnico;
+    std::string federacion;
+    std::string confederacion;
 
-    // --- Datos de ranking y estadísticas históricas ---
-    int rankingFIFA;
+    // Estadísticas históricas del equipo
     int golesAFavor;
     int golesEnContra;
     int partidosGanados;
     int partidosEmpatados;
     int partidosPerdidos;
 
-    // Tarjetas y faltas (inicialmente en cero según el enunciado)
+    // Estadísticas que empiezan en cero
     int tarjetasAmarillas;
     int tarjetasRojas;
     int faltas;
 
-    // --- Función auxiliar privada ---
-    // Copia un string en memoria dinámica
-    char* copiarCadena(const char* origen) const;
+    // Plantilla de jugadores (memoria dinámica)
+    // Se usa un arreglo dinámico porque el número de jugadores
+    // no se conoce en tiempo de compilación (podría cambiar).
+    Jugador* jugadores;
+    int cantidadJugadores;
+
+    // Número máximo de jugadores por equipo
+    static const int MAX_JUGADORES = 26;
 
 public:
     // Constructor por defecto
     Seleccion();
 
-    // Constructor con parámetros
-    Seleccion(int ranking, const char* pais, const char* dt,
-              const char* fed, const char* conf,
+    // Constructor con parámetros: recibe datos leídos del CSV
+    Seleccion(int ranking, const std::string& pais,
+              const std::string& dt, const std::string& fed,
+              const std::string& conf,
               int gf, int gc, int pg, int pe, int pp);
 
-    // Constructor de copia
+    // Constructor de copia (necesario porque usamos memoria dinámica)
     Seleccion(const Seleccion& otra);
 
-    // Destructor — libera la memoria dinámica
+    // Destructor: libera la memoria dinámica del arreglo de jugadores
     ~Seleccion();
 
-    // Operador de asignación
+    // Operador de asignación (para evitar fugas de memoria en copias)
     Seleccion& operator=(const Seleccion& otra);
 
+    // Fabrica artificialmente la plantilla de 26 jugadores
+    // y reparte los goles históricos de forma uniforme
+    void fabricarJugadores();
+
     // --- Getters ---
-    int         getRanking()          const;
-    const char* getPais()             const;
-    const char* getDT()               const;
-    const char* getFederacion()       const;
-    const char* getConfederacion()    const;
-    int         getGolesAFavor()      const;
-    int         getGolesEnContra()    const;
-    int         getPartidosGanados()  const;
-    int         getPartidosEmpatados()const;
-    int         getPartidosPerdidos() const;
+    int getRankingFIFA() const;
+    std::string getPais() const;
+    std::string getDirectorTecnico() const;
+    std::string getFederacion() const;
+    std::string getConfederacion() const;
+    int getGolesAFavor() const;
+    int getGolesEnContra() const;
+    int getPartidosGanados() const;
+    int getPartidosEmpatados() const;
+    int getPartidosPerdidos() const;
+    int getCantidadJugadores() const;
 
-    // --- Setters para actualizar estadísticas ---
-    void agregarGolAFavor();
-    void agregarGolEnContra();
-    void registrarPartido(bool gano, bool empato);
+    // Retorna una referencia al jugador en la posición dada
+    // (permite modificarlo directamente)
+    Jugador& getJugador(int indice);
+    const Jugador& getJugador(int indice) const;
 
-    // --- Sobrecarga de operadores ---
-    // Compara dos selecciones por ranking FIFA
+    // Muestra los datos generales de la selección
+    void mostrarInfo() const;
+
+    // Muestra la plantilla completa de jugadores
+    void mostrarPlantilla() const;
+
+    // Sobrecarga del operador < para comparar por ranking FIFA
     bool operator<(const Seleccion& otra) const;
-    bool operator==(const Seleccion& otra) const;
 
-    // Imprime los datos por consola
-    void mostrar() const;
-
-    // Función amiga: imprime la selección con formato especial
-    friend std::ostream& operator<<(std::ostream& out, const Seleccion& s);
+    // Sobrecarga del operador << (función amiga) para imprimir fácil
+    friend std::ostream& operator<<(std::ostream& os, const Seleccion& s);
 };
 
-#endif
+#endif // SELECCION_H
