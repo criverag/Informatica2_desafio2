@@ -147,7 +147,7 @@ Seleccion* LectorCSV::cargarSelecciones(const char* rutaArchivo,
         int pp = parsearEntero(lineaTemp, pos);
 
         // Construimos la selección usando el constructor con parámetros
-        selecciones[indice] = Seleccion(ranking, pais, dt, fed, conf,
+        selecciones[indice] = Seleccion(ranking, pais, dt, conf,
                                         gf, gc, pg, pe, pp);
         indice++;
     }

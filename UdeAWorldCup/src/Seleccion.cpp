@@ -1,180 +1,81 @@
 #include "Seleccion.h"
-#include <cstring>  // strlen, strcpy
+#include <iostream>
+#include <iomanip>
 
-// ============================================================
-// Función auxiliar privada
-// Reserva memoria en el heap y copia la cadena recibida.
-// Se usa para que cada objeto tenga su propia copia del string.
-// ============================================================
-char* Seleccion::copiarCadena(const char* origen) const {
-    if (origen == nullptr) return nullptr;
-    int longitud = strlen(origen);
-    char* nueva = new char[longitud + 1]; // +1 para el '\0'
-    strcpy(nueva, origen);
-    return nueva;
-}
-
-// ============================================================
-// Constructor por defecto
-// Deja todos los punteros en nullptr y los enteros en 0.
-// ============================================================
+// -------------------------------------------------------
+// Constructor por defecto: inicializa todo en cero o vacio
+// -------------------------------------------------------
 Seleccion::Seleccion()
-    : pais(nullptr), directorTecnico(nullptr),
-      federacion(nullptr), confederacion(nullptr),
-      rankingFIFA(0), golesAFavor(0), golesEnContra(0),
-      partidosGanados(0), partidosEmpatados(0), partidosPerdidos(0),
-      tarjetasAmarillas(0), tarjetasRojas(0), faltas(0) {
+    : rankingFIFA(0), pais(""), director(""), confederacion(""),
+      golesFavor(0), golesContra(0), ganados(0), empatados(0), perdidos(0) {}
+
+// -------------------------------------------------------
+// Constructor con parametros: recibe todos los datos
+// -------------------------------------------------------
+Seleccion::Seleccion(int ranking, const std::string& p, const std::string& d,
+                     const std::string& conf,
+                     int gf, int gc, int g, int e, int pe)
+    : rankingFIFA(ranking), pais(p), director(d), confederacion(conf),
+      golesFavor(gf), golesContra(gc), ganados(g), empatados(e), perdidos(pe) {}
+
+// -------------------------------------------------------
+// Getters: cada uno devuelve su atributo correspondiente
+// -------------------------------------------------------
+int         Seleccion::getRanking()       const { return rankingFIFA; }
+std::string Seleccion::getPais()          const { return pais; }
+std::string Seleccion::getDirector()      const { return director; }
+std::string Seleccion::getConfederacion() const { return confederacion; }
+int         Seleccion::getGolesFavor()    const { return golesFavor; }
+int         Seleccion::getGolesContra()   const { return golesContra; }
+int         Seleccion::getGanados()       const { return ganados; }
+int         Seleccion::getEmpatados()     const { return empatados; }
+int         Seleccion::getPerdidos()      const { return perdidos; }
+
+// -------------------------------------------------------
+// getPuntos: calcula los puntos acumulados
+// Cada victoria vale 3, cada empate vale 1
+// -------------------------------------------------------
+int Seleccion::getPuntos() const {
+    return (ganados * 3) + (empatados * 1);
 }
 
-// ============================================================
-// Constructor con parámetros
-// ============================================================
-Seleccion::Seleccion(int ranking, const char* p, const char* dt,
-                     const char* fed, const char* conf,
-                     int gf, int gc, int pg, int pe, int pp)
-    : rankingFIFA(ranking),
-      golesAFavor(gf), golesEnContra(gc),
-      partidosGanados(pg), partidosEmpatados(pe), partidosPerdidos(pp),
-      tarjetasAmarillas(0), tarjetasRojas(0), faltas(0)
-{
-    pais            = copiarCadena(p);
-    directorTecnico = copiarCadena(dt);
-    federacion      = copiarCadena(fed);
-    confederacion   = copiarCadena(conf);
+// -------------------------------------------------------
+// getDiferencia: goles a favor menos goles en contra
+// -------------------------------------------------------
+int Seleccion::getDiferencia() const {
+    return golesFavor - golesContra;
 }
 
-// ============================================================
-// Constructor de copia
-// Crea una copia profunda (deep copy) del objeto.
-// Es importante para evitar que dos objetos compartan
-// la misma dirección de memoria.
-// ============================================================
-Seleccion::Seleccion(const Seleccion& otra)
-    : rankingFIFA(otra.rankingFIFA),
-      golesAFavor(otra.golesAFavor), golesEnContra(otra.golesEnContra),
-      partidosGanados(otra.partidosGanados),
-      partidosEmpatados(otra.partidosEmpatados),
-      partidosPerdidos(otra.partidosPerdidos),
-      tarjetasAmarillas(otra.tarjetasAmarillas),
-      tarjetasRojas(otra.tarjetasRojas), faltas(otra.faltas)
-{
-    pais            = copiarCadena(otra.pais);
-    directorTecnico = copiarCadena(otra.directorTecnico);
-    federacion      = copiarCadena(otra.federacion);
-    confederacion   = copiarCadena(otra.confederacion);
-}
-
-// ============================================================
-// Destructor
-// Libera la memoria reservada en el heap con new[].
-// Sin esto habría una fuga de memoria (memory leak).
-// ============================================================
-Seleccion::~Seleccion() {
-    delete[] pais;
-    delete[] directorTecnico;
-    delete[] federacion;
-    delete[] confederacion;
-    // Los punteros quedan "colgando" pero el objeto ya no existe,
-    // así que no hay problema.
-}
-
-// ============================================================
-// Operador de asignación
-// Necesario cuando hacemos: seleccion1 = seleccion2
-// ============================================================
-Seleccion& Seleccion::operator=(const Seleccion& otra) {
-    // Verificamos que no sea auto-asignación: a = a
-    if (this == &otra) return *this;
-
-    // Liberamos la memoria anterior
-    delete[] pais;
-    delete[] directorTecnico;
-    delete[] federacion;
-    delete[] confederacion;
-
-    // Copiamos los datos
-    rankingFIFA       = otra.rankingFIFA;
-    golesAFavor       = otra.golesAFavor;
-    golesEnContra     = otra.golesEnContra;
-    partidosGanados   = otra.partidosGanados;
-    partidosEmpatados = otra.partidosEmpatados;
-    partidosPerdidos  = otra.partidosPerdidos;
-    tarjetasAmarillas = otra.tarjetasAmarillas;
-    tarjetasRojas     = otra.tarjetasRojas;
-    faltas            = otra.faltas;
-
-    pais            = copiarCadena(otra.pais);
-    directorTecnico = copiarCadena(otra.directorTecnico);
-    federacion      = copiarCadena(otra.federacion);
-    confederacion   = copiarCadena(otra.confederacion);
-
-    return *this;
-}
-
-// ============================================================
-// Getters
-// ============================================================
-int         Seleccion::getRanking()           const { return rankingFIFA; }
-const char* Seleccion::getPais()              const { return pais; }
-const char* Seleccion::getDT()                const { return directorTecnico; }
-const char* Seleccion::getFederacion()        const { return federacion; }
-const char* Seleccion::getConfederacion()     const { return confederacion; }
-int         Seleccion::getGolesAFavor()       const { return golesAFavor; }
-int         Seleccion::getGolesEnContra()     const { return golesEnContra; }
-int         Seleccion::getPartidosGanados()   const { return partidosGanados; }
-int         Seleccion::getPartidosEmpatados() const { return partidosEmpatados; }
-int         Seleccion::getPartidosPerdidos()  const { return partidosPerdidos; }
-
-// ============================================================
-// Setters / actualizadores de estadísticas
-// ============================================================
-void Seleccion::agregarGolAFavor()  { golesAFavor++; }
-void Seleccion::agregarGolEnContra(){ golesEnContra++; }
-
-void Seleccion::registrarPartido(bool gano, bool empato) {
-    if (gano)       partidosGanados++;
-    else if (empato) partidosEmpatados++;
-    else             partidosPerdidos++;
-}
-
-// ============================================================
-// Sobrecarga del operador <
-// Permite comparar selecciones por ranking FIFA.
-// Un ranking menor = mejor posición.
-// ============================================================
-bool Seleccion::operator<(const Seleccion& otra) const {
-    return rankingFIFA < otra.rankingFIFA;
-}
-
-bool Seleccion::operator==(const Seleccion& otra) const {
-    return rankingFIFA == otra.rankingFIFA;
-}
-
-// ============================================================
-// Método mostrar()
-// Imprime los datos del equipo en consola.
-// ============================================================
+// -------------------------------------------------------
+// mostrar: imprime la informacion de la seleccion en
+// formato tabla legible
+// -------------------------------------------------------
 void Seleccion::mostrar() const {
-    std::cout << "--------------------------------------------\n";
-    std::cout << "Pais            : " << (pais ? pais : "N/A") << "\n";
-    std::cout << "Ranking FIFA    : " << rankingFIFA << "\n";
-    std::cout << "Director Tecnico: " << (directorTecnico ? directorTecnico : "N/A") << "\n";
-    std::cout << "Confederacion   : " << (confederacion ? confederacion : "N/A") << "\n";
-    std::cout << "Goles a favor   : " << golesAFavor
-              << " | En contra: " << golesEnContra << "\n";
-    std::cout << "Partidos G/E/P  : "
-              << partidosGanados << "/"
-              << partidosEmpatados << "/"
-              << partidosPerdidos << "\n";
+    std::cout << std::left
+              << std::setw(5)  << rankingFIFA
+              << std::setw(22) << pais
+              << std::setw(15) << confederacion
+              << std::setw(4)  << getPuntos()
+              << std::setw(4)  << golesFavor
+              << std::setw(4)  << golesContra
+              << std::setw(6)  << getDiferencia()
+              << "\n";
 }
 
-// ============================================================
-// Función amiga: operator<<
-// Permite hacer: cout << miSeleccion
-// ============================================================
-std::ostream& operator<<(std::ostream& out, const Seleccion& s) {
-    out << "[" << s.rankingFIFA << "] "
-        << (s.pais ? s.pais : "?")
-        << " (" << (s.confederacion ? s.confederacion : "?") << ")";
-    return out;
+// -------------------------------------------------------
+// operator<: compara dos selecciones por ranking FIFA
+// Sirve para ordenar de menor a mayor ranking
+// -------------------------------------------------------
+bool Seleccion::operator<(const Seleccion& otra) const {
+    return this->rankingFIFA < otra.rankingFIFA;
+}
+
+// -------------------------------------------------------
+// operator<<: funcion amiga para imprimir con cout
+// -------------------------------------------------------
+std::ostream& operator<<(std::ostream& os, const Seleccion& s) {
+    os << "[" << s.rankingFIFA << "] " << s.pais
+       << " (" << s.confederacion << ") - "
+       << s.getPuntos() << " pts | DG: " << s.getDiferencia();
+    return os;
 }
